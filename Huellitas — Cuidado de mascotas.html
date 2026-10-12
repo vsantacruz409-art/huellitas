@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Huellitas — Cuidado de mascotas</title>
+<style>
+:root{--bg:#fff8f0;--card:#fff;--ink:#2d2a26;--mute:#6b645c;--pri:#e8743b;--priink:#fff;--ok:#2e8b57;--warn:#c98a00;--bad:#c0392b;--line:#eadfd3;--r:16px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1a17;--card:#2a2521;--ink:#f3ece4;--mute:#b5aa9d;--pri:#f08a55;--priink:#1e1a17;--line:#3d352e;--ok:#5fc48a;--warn:#e6b84a;--bad:#ef7d6f}}
+:root[data-theme="dark"]{--bg:#1e1a17;--card:#2a2521;--ink:#f3ece4;--mute:#b5aa9d;--pri:#f08a55;--priink:#1e1a17;--line:#3d352e;--ok:#5fc48a;--warn:#e6b84a;--bad:#ef7d6f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
+header{display:flex;align-items:center;gap:12px;padding:16px;max-width:560px;margin:0 auto}
+.av{width:52px;height:52px;border-radius:50%;background:var(--pri);display:grid;place-items:center;font-size:28px}
+h1{font-size:1.25rem;margin:0}h2{font-size:1.1rem;margin:0 0 8px}
+header small{color:var(--mute)}
+main{max-width:560px;margin:0 auto;padding:0 16px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+label{display:block;font-size:.9rem;color:var(--mute);margin:8px 0 4px}
+input,select{width:100%;min-height:44px;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+button{min-height:44px;font-size:1rem;border:0;border-radius:12px;padding:8px 14px;background:var(--pri);color:var(--priink);font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--pri);border:1px solid var(--pri)}
+button.x{background:transparent;color:var(--bad);padding:4px 10px;min-height:36px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row>button{flex:0 0 auto}
+.it{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.it:first-of-type{border-top:0}
+.it b{display:block}.it span{color:var(--mute);font-size:.9rem}
+.tag{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid currentColor}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:transparent;color:var(--mute);border-radius:0;font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:56px;padding:6px 2px}
+nav button .e{font-size:1.4rem}nav button[aria-selected="true"]{color:var(--pri)}
+#toast{position:fixed;left:16px;right:16px;top:calc(12px + env(safe-area-inset-top,0px));background:var(--ink);color:var(--bg);padding:12px 14px;border-radius:12px;display:none;z-index:9}
+.empty{color:var(--mute);text-align:center;padding:12px}
+svg{width:100%;height:auto}
+a{color:var(--pri)}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){section.on{animation:f .2s}@keyframes f{from{opacity:0;transform:translateY(6px)}}}
+</style>
+</head>
+<body>
+<div id="toast" role="status" aria-live="polite"></div>
+<header><div class="av" id="av" aria-hidden="true">🐾</div><div><h1 id="ttl">Huellitas</h1><small id="sub">Cuidado de mascotas</small></div></header>
+<main>
+<section id="s0" class="on"></section>
+<section id="s1"></section>
+<section id="s2"></section>
+<section id="s3"></section>
+<section id="s4"></section>
+</main>
+<nav role="tablist" aria-label="Secciones">
+<button role="tab" data-t="0" aria-selected="true"><span class="e">🏠</span>Inicio</button>
+<button role="tab" data-t="1" aria-selected="false"><span class="e">💉</span>Salud</button>
+<button role="tab" data-t="2" aria-selected="false"><span class="e">🍖</span>Comida</button>
+<button role="tab" data-t="3" aria-selected="false"><span class="e">⚖️</span>Peso</button>
+<button role="tab" data-t="4" aria-selected="false"><span class="e">🏥</span>Clínicas</button>
+</nav>
+<script>
+const KEY="huellitas.v1";
+let S={pet:null,health:[],meals:[],weights:[],clinics:[{id:1,n:"Clínica de ejemplo (edítala)",p:"",a:"",h24:false}],fired:{}};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const days=d=>Math.round((new Date(d+"T00:00")-new Date(today()+"T00:00"))/864e5);
+const fmt=d=>new Date(d+"T00:00").toLocaleDateString("es-CO",{day:"numeric",month:"short",year:"numeric"});
+const uid=()=>Date.now()+Math.floor(Math.random()*1e3);
+function age(b){if(!b)return"";let m=Math.max(0,Math.floor((Date.now()-new Date(b))/2629800000));return m<12?m+" meses":Math.floor(m/12)+" años"+(m%12?" y "+m%12+" m":"")}
+function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",5000)}
+function st(h){if(h.done)return["Hecha","ok"];const d=days(h.date);return d<0?["Vencida","bad"]:d<=14?["Próxima","warn"]:["Al día","ok"]}
+
+function tab(i){document.querySelectorAll("section").forEach((s,k)=>s.classList.toggle("on",k==i));
+document.querySelectorAll("nav button").forEach((b,k)=>b.setAttribute("aria-selected",k==i))}
+document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b)tab(b.dataset.t)};
+
+function rHome(){const p=S.pet;
+if(!p){$("#s0").innerHTML=`<div class="card"><h2>¡Bienvenido a Huellitas! 🐶🐱</h2><p>Cuéntanos de tu mascota para empezar.</p>
+<label for="pn">Nombre</label><input id="pn" autocomplete="off">
+<label for="pt">Especie</label><select id="pt"><option value="perro">Perro</option><option value="gato">Gato</option></select>
+<label for="pb">Fecha de nacimiento (aprox.)</label><input id="pb" type="date" max="${today()}">
+<p><button id="ps">Guardar mascota</button></p></div>`;
+$("#ps").onclick=()=>{const n=$("#pn").value.trim();if(!n)return toast("Escribe el nombre");S.pet={n,t:$("#pt").value,b:$("#pb").value};save();all()};return}
+const nx=S.health.filter(h=>!h.done).sort((a,b)=>a.date.localeCompare(b.date))[0];
+const w=S.weights.slice().sort((a,b)=>a.d.localeCompare(b.d)).pop();
+const ml=S.meals.filter(m=>m.on).sort((a,b)=>a.t.localeCompare(b.t));
+const now=new Date().toTimeString().slice(0,5);const nm=ml.find(m=>m.t>=now)||ml[0];
+$("#s0").innerHTML=`<div class="card"><h2>${esc(p.n)} ${p.t=="gato"?"🐱":"🐶"}</h2><span>${esc(p.t)}${p.b?" · "+age(p.b):""}${w?" · "+w.kg+" kg":""}</span></div>
+<div class="card"><h2>💉 Próximo cuidado</h2>${nx?`<b>${esc(nx.n)}</b> <span class="tag ${st(nx)[1]}">${st(nx)[0]}</span><br><span>${fmt(nx.date)}</span>`:'<span class="empty">Sin pendientes. Agrega vacunas en Salud.</span>'}</div>
+<div class="card"><h2>🍖 Próxima comida</h2>${nm?`<b>${nm.t}</b> · ${esc(nm.l)}`:'<span class="empty">Configura horarios en Comida.</span>'}</div>
+<button class="g" id="rp">Editar mascota</button>`;
+$("#rp").onclick=()=>{S.pet=null;save();all()}}
+
+function rHealth(){const L=S.health.slice().sort((a,b)=>a.date.localeCompare(b.date));
+$("#s1").innerHTML=`<div class="card"><h2>Calendario de salud</h2>${L.length?L.map(h=>{const s=st(h);return`<div class="it"><div><b>${h.k=="v"?"💉":"🐛"} ${esc(h.n)}</b><span>${fmt(h.date)}</span></div><div><span class="tag ${s[1]}">${s[0]}</span>${h.done?"":`<button class="g" data-d="${h.id}" aria-label="Marcar hecha">✓</button>`}<button class="x" data-x="${h.id}" aria-label="Eliminar">✕</button></div></div>`}).join(""):'<p class="empty">Aún no hay registros.</p>'}</div>
+<div class="card"><h2>Agregar</h2><label for="hk">Tipo</label><select id="hk"><option value="v">Vacuna</option><option value="d">Desparasitación</option></select>
+<label for="hn">Nombre (ej. Triple, Rabia)</label><input id="hn"><label for="hd">Fecha programada</label><input id="hd" type="date" value="${today()}">
+<p><button id="ha">Agregar</button></p></div>`;
+$("#ha").onclick=()=>{const n=$("#hn").value.trim();if(!n||!$("#hd").value)return toast("Completa nombre y fecha");S.health.push({id:uid(),k:$("#hk").value,n,date:$("#hd").value,done:false});save();all()};
+$("#s1").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+if(b.dataset.d){S.health.find(h=>h.id==b.dataset.d).done=true;save();all()}
+if(b.dataset.x){S.health=S.health.filter(h=>h.id!=b.dataset.x);save();all()}}}
+
+function rMeals(){const L=S.meals.slice().sort((a,b)=>a.t.localeCompare(b.t));
+$("#s2").innerHTML=`<div class="card"><h2>Horarios de comida</h2>${L.length?L.map(m=>`<div class="it"><div><b>${m.t}</b><span>${esc(m.l)}</span></div><div><button class="g" data-o="${m.id}" aria-pressed="${m.on}">${m.on?"Activo":"Pausado"}</button><button class="x" data-x="${m.id}" aria-label="Eliminar">✕</button></div></div>`).join(""):'<p class="empty">Sin horarios.</p>'}</div>
+<div class="card"><h2>Agregar horario</h2><label for="mt">Hora</label><input id="mt" type="time" value="08:00"><label for="ml">Descripción</label><input id="ml" placeholder="Ej. 1 taza de croquetas">
+<p class="row"><button id="ma">Agregar</button><button class="g" id="mn">Activar avisos</button></p>
+<small>Los avisos suenan mientras la app esté abierta. Para recordatorios con la app cerrada se necesita una app instalada con notificaciones push.</small></div>`;
+$("#ma").onclick=()=>{if(!$("#mt").value)return;S.meals.push({id:uid(),t:$("#mt").value,l:$("#ml").value.trim()||"Comida",on:true});save();all()};
+$("#mn").onclick=()=>{try{Notification.requestPermission().then(r=>toast(r=="granted"?"Avisos activados":"Avisos no permitidos"))}catch(e){toast("Tu navegador no admite notificaciones; verás avisos dentro de la app")}};
+$("#s2").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+if(b.dataset.o){const m=S.meals.find(m=>m.id==b.dataset.o);m.on=!m.on;save();all()}
+if(b.dataset.x){S.meals=S.meals.filter(m=>m.id!=b.dataset.x);save();all()}}}
+
+function chart(W){if(W.length<2)return'<p class="empty">Registra al menos 2 pesos para ver la curva.</p>';
+const w=320,h=150,p=24,ks=W.map(x=>x.kg),mn=Math.min(...ks),mx=Math.max(...ks),r=(mx-mn)||1;
+const pts=W.map((x,i)=>[p+i*(w-2*p)/(W.length-1),h-p-(x.kg-mn)/r*(h-2*p)]);
+return`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Curva de peso de ${mn} a ${mx} kg"><polyline fill="none" stroke="var(--pri)" stroke-width="3" points="${pts.map(q=>q.join(",")).join(" ")}"/>${pts.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="var(--pri)"/><text x="${q[0]}" y="${q[1]-8}" font-size="10" text-anchor="middle" fill="var(--ink)">${W[i].kg}</text>`).join("")}</svg>`}
+function rWeight(){const W=S.weights.slice().sort((a,b)=>a.d.localeCompare(b.d));
+const dl=W.length>1?(W[W.length-1].kg-W[W.length-2].kg).toFixed(2):null;
+$("#s3").innerHTML=`<div class="card"><h2>Peso y crecimiento</h2>${chart(W)}${dl!==null?`<p>Último cambio: <b>${dl>0?"+":""}${dl} kg</b></p>`:""}</div>
+<div class="card"><h2>Registrar peso</h2><label for="wk">Peso (kg)</label><input id="wk" type="number" step="0.01" min="0" inputmode="decimal"><label for="wd">Fecha</label><input id="wd" type="date" value="${today()}" max="${today()}"><p><button id="wa">Guardar</button></p>
+${W.slice().reverse().map(x=>`<div class="it"><div><b>${x.kg} kg</b><span>${fmt(x.d)}</span></div><button class="x" data-x="${x.id}" aria-label="Eliminar">✕</button></div>`).join("")}</div>`;
+$("#wa").onclick=()=>{const kg=parseFloat($("#wk").value);if(!(kg>0))return toast("Ingresa un peso válido");S.weights.push({id:uid(),kg,d:$("#wd").value||today()});save();all()};
+$("#s3").onclick=e=>{const b=e.target.closest("[data-x]");if(b){S.weights=S.weights.filter(x=>x.id!=b.dataset.x);save();all()}}}
+
+let q="";
+function rClin(){const L=S.clinics.filter(c=>(c.n+c.a).toLowerCase().includes(q.toLowerCase()));
+$("#s4").innerHTML=`<div class="card"><h2>Directorio veterinario</h2><label for="cq">Buscar</label><input id="cq" type="search" value="${esc(q)}">
+${L.length?L.map(c=>`<div class="it"><div><b>${esc(c.n)} ${c.h24?'<span class="tag ok">24 h</span>':""}</b><span>${esc(c.a)}</span></div><div>${c.p?`<a href="tel:${esc(c.p.replace(/[^\d+]/g,""))}"><button>Llamar</button></a>`:""}<button class="x" data-x="${c.id}" aria-label="Eliminar">✕</button></div></div>`).join(""):'<p class="empty">Sin resultados.</p>'}</div>
+<div class="card"><h2>Agregar clínica</h2><label for="cn">Nombre</label><input id="cn"><label for="cp">Teléfono</label><input id="cp" type="tel"><label for="ca">Dirección</label><input id="ca"><label><input id="ch" type="checkbox" style="width:auto;min-height:0"> Atiende 24 horas</label><p><button id="cb">Agregar</button></p></div>`;
+const i=$("#cq");i.oninput=()=>{q=i.value;const p=i.selectionStart;rClin();const n=$("#cq");n.focus();n.setSelectionRange(p,p)};
+$("#cb").onclick=()=>{const n=$("#cn").value.trim();if(!n)return toast("Escribe el nombre");S.clinics.push({id:uid(),n,p:$("#cp").value.trim(),a:$("#ca").value.trim(),h24:$("#ch").checked});save();all()};
+$("#s4").onclick=e=>{const b=e.target.closest("[data-x]");if(b){S.clinics=S.clinics.filter(c=>c.id!=b.dataset.x);save();all()}}}
+
+function all(){const p=S.pet;$("#ttl").textContent=p?p.n:"Huellitas";$("#sub").textContent=p?"Cuidado de mascotas":"Cuidado de mascotas";$("#av").textContent=p?(p.t=="gato"?"🐱":"🐶"):"🐾";rHome();rHealth();rMeals();rWeight();rClin()}
+
+function tick(){const n=new Date(),hm=n.toTimeString().slice(0,5),k=today()+hm;
+S.meals.forEach(m=>{if(m.on&&m.t===hm&&S.fired[m.id]!==k){S.fired[m.id]=k;save();const t="🍖 Hora de comer"+(S.pet?": "+S.pet.n:"")+" — "+m.l;toast(t);try{if(Notification.permission==="granted")new Notification("Huellitas",{body:t})}catch(e){}}});
+const v=S.health.filter(h=>!h.done&&days(h.date)<0).length;if(v&&!tick.s){tick.s=1;toast("Tienes "+v+" cuidado(s) de salud vencido(s)")}}
+all();setInterval(tick,20000);tick();
+</script>
+</body>
+</html>
